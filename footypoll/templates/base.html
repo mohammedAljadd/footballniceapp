@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Football Poll{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'matches/css/style.css' %}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <h1 class="site-title"><a href="{% url 'match_list' %}">FootyPoll</a></h1>
+            <nav class="main-nav">
+                <ul class="nav-list">
+                    <li><a href="{% url 'match_list' %}">Matches</a></li>
+                    
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <li><a href="/admin/matches/match/" target="_blank">Add Match</a></li>
+                            <li><a href="{% url 'action_log' %}" target="_blank">Player Actions</a></li>
+
+                        {% endif %}
+                        <li class="user-info">
+                            👋 {{ user.username }}
+                        </li>
+                        <li><a href="{% url 'logout' %}" class="logout-link">Logout</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'signup' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% for message in messages %}
+            <div class="message message-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

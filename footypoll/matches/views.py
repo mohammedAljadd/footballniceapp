@@ -8,10 +8,27 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 from .models import ActionLog
 
-@staff_member_required  # restrict access to staff/admin only
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render
+from .models import ActionLog, Match  # Import Match to get list of matches
+
+@staff_member_required
 def action_log(request):
+    match_id = request.GET.get('match_id')
     logs = ActionLog.objects.select_related('match').order_by('-timestamp')
-    return render(request, 'matches/action_log.html', {'logs': logs})
+
+    if match_id:
+        logs = logs.filter(match_id=match_id)
+
+    matches = Match.objects.order_by('date', 'time')  # For dropdown filter
+
+    context = {
+        'logs': logs,
+        'matches': matches,
+        'selected_match_id': int(match_id) if match_id else None,
+    }
+    return render(request, 'matches/action_log.html', context)
+
 
 
 def match_list(request):

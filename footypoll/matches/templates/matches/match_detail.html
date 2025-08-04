@@ -1,23 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-  <title>{{ match.day }} - Match Details</title>
-  <link rel="stylesheet" href="{% static 'matches/css/style.css' %}">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-</head>
-<body>
+{% extends 'base.html' %}
 
-    {% if user.is_authenticated %}
-  <p>👋 Welcome, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a></p>
-{% else %}
-  <p><a href="{% url 'login' %}">Login</a> / <a href="{% url 'signup' %}">Register</a></p>
-{% endif %}
+{% block title %}{{ match.day }} - Match Details{% endblock %}
 
-
-
+{% block content %}
   <h1>{{ match.day }} - {{ match.date }} at {{ match.time }}</h1>
   <p>Location: <a href="{{ match.location_url }}" target="_blank">Map</a></p>
 
@@ -46,12 +31,6 @@
   <p><a href="{% url 'login' %}">Log in</a> to add or remove yourself.</p>
 {% endif %}
 
-
   <br>
   <a href="{% url 'match_list' %}">⬅ Back to Match List</a>
-
-  {% for message in messages %}
-    <p style="color:red;">{{ message }}</p>
-  {% endfor %}
-</body>
-</html>
+{% endblock %}

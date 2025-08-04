@@ -1,17 +1,24 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Player Action Log</title>
-  <link rel="stylesheet" href="{% static 'matches/css/style.css' %}">
-  <style>
-    table { border-collapse: collapse; width: 100%; }
-    th, td { padding: 8px; border: 1px solid #ddd; }
-    th { background-color: #f2f2f2; }
-  </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Player Action Log{% endblock %}
+
+{% block content %}
   <h1>Player Action Log</h1>
+
+    <form method="get">
+    <label for="match-select">Filter by match:</label>
+    <select name="match_id" id="match-select" onchange="this.form.submit()">
+      <option value="">All matches</option>
+      {% for match in matches %}
+        <option value="{{ match.id }}" {% if match.id == selected_match_id %}selected{% endif %}>
+          {{ match.day }} - {{ match.date }} at {{ match.time }}
+        </option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit">Filter</button></noscript>
+  </form>
+
+  
   <table>
     <thead>
       <tr>
@@ -34,8 +41,4 @@
       {% endfor %}
     </tbody>
   </table>
-
-  <br>
-  <a href="{% url 'match_list' %}">⬅ Back to Matches</a>
-</body>
-</html>
+{% endblock %}

@@ -1,22 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Football Matches</title>
-   <link rel="stylesheet" href="{% static 'matches/css/style.css' %}">
-   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-   <meta http-equiv="Pragma" content="no-cache">
-   <meta http-equiv="Expires" content="0">
-</head>
-<body>
+{% extends 'base.html' %}
 
-    {% if user.is_authenticated %}
-    <p>👋 Welcome, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a></p>
-    {% else %}
-    <p><a href="{% url 'login' %}">Login</a> / <a href="{% url 'signup' %}">Register</a></p>
-    {% endif %}
+{% block title %}Football Matches{% endblock %}
 
-
+{% block content %}
   <h1>Upcoming Matches</h1>
   <ul>
     {% for match in matches %}
@@ -27,5 +13,4 @@
       </li>
     {% endfor %}
   </ul>
-</body>
-</html>
+{% endblock %}
