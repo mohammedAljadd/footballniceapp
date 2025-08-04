@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ match.day }} - Match Details</title>
+  <link rel="stylesheet" href="{% static 'matches/css/style.css' %}">
+</head>
+<body>
+
+    {% if user.is_authenticated %}
+  <p>👋 Welcome, {{ user.username }} | <a href="{% url 'logout' %}">Logout</a></p>
+{% else %}
+  <p><a href="{% url 'login' %}">Login</a> / <a href="{% url 'signup' %}">Register</a></p>
+{% endif %}
+
+
+
+  <h1>{{ match.day }} - {{ match.date }} at {{ match.time }}</h1>
+  <p>Location: <a href="{{ match.location_url }}" target="_blank">Map</a></p>
+
+  <h2>Player List ({{ players.count }}/{{ match.max_players }})</h2>
+  <ol>
+    {% for player in players %}
+      <li>{{ player.user.username }}</li>
+    {% endfor %}
+  </ol>
+
+  {% if user.is_authenticated %}
+  {% if user_entry and not user_entry.removed %}
+    <form method="post" action="{% url 'toggle_participation' match.id %}">
+      {% csrf_token %}
+      <button type="submit">Remove Myself</button>
+    </form>
+  {% elif players.count < match.max_players %}
+    <form method="post" action="{% url 'toggle_participation' match.id %}">
+      {% csrf_token %}
+      <button type="submit">Add Myself</button>
+    </form>
+  {% else %}
+    <p>The list is full! You cannot join now.</p>
+  {% endif %}
+{% else %}
+  <p><a href="{% url 'login' %}">Log in</a> to add or remove yourself.</p>
+{% endif %}
+
+
+  <br>
+  <a href="{% url 'match_list' %}">⬅ Back to Match List</a>
+
+  {% for message in messages %}
+    <p style="color:red;">{{ message }}</p>
+  {% endfor %}
+</body>
+</html>

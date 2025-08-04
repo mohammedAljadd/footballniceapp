@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Player Action Log</title>
+  <link rel="stylesheet" href="{% static 'matches/css/style.css' %}">
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 8px; border: 1px solid #ddd; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>Player Action Log</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Player Name</th>
+        <th>Match</th>
+        <th>Action</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+        <tr>
+          <td>{{ log.player_name }}</td>
+          <td>{{ log.match.day }} - {{ log.match.date }} at {{ log.match.time }}</td>
+          <td>{{ log.action|title }}</td>
+          <td>{{ log.timestamp }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No logs available.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <br>
+  <a href="{% url 'match_list' %}">⬅ Back to Matches</a>
+</body>
+</html>
