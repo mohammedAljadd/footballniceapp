@@ -7,14 +7,16 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body class="{% if request.session.theme == 'dark' %}dark-theme{% endif %}">
     <header class="main-header">
         <div class="header-content">
             <h1 class="site-title"><a href="{% url 'match_list' %}">FootyAlpes</a></h1>
             <nav class="main-nav">
                 <ul class="nav-list">
                     <li><a href="{% url 'match_list' %}">Matches</a></li>
+                    <li><a href="{% url 'stats_page' %}">Statistics</a></li>
                     
                     {% if user.is_authenticated %}
                         {% if user.is_staff %}
@@ -24,8 +26,18 @@
                         <li class="user-info">
                             👋 {{ user.username }}
                         </li>
+                        <li>
+                            <button class="theme-toggle" onclick="toggleTheme()">
+                                <span class="theme-icon">🌙</span>
+                            </button>
+                        </li>
                         <li><a href="{% url 'logout' %}" class="logout-link">Logout</a></li>
                     {% else %}
+                        <li>
+                            <button class="theme-toggle" onclick="toggleTheme()">
+                                <span class="theme-icon">🌙</span>
+                            </button>
+                        </li>
                         <li><a href="{% url 'login' %}">Login</a></li>
                         <li><a href="{% url 'signup' %}">Register</a></li>
                     {% endif %}
@@ -42,5 +54,60 @@
         {% block content %}
         {% endblock %}
     </main>
+
+    <script>
+        function toggleTheme() {
+            fetch('{% url "toggle_theme" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle the theme class on body
+                    document.body.classList.toggle('dark-theme');
+                    
+                    // Update the theme icon
+                    const themeIcon = document.querySelector('.theme-icon');
+                    if (data.theme === 'dark') {
+                        themeIcon.textContent = '☀️';
+                    } else {
+                        themeIcon.textContent = '🌙';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling theme:', error);
+            });
+        }
+
+        // Get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Set initial theme icon
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeIcon = document.querySelector('.theme-icon');
+            const isDark = document.body.classList.contains('dark-theme');
+            if (themeIcon) {
+                themeIcon.textContent = isDark ? '☀️' : '🌙';
+            }
+        });
+    </script>
 </body>
 </html>

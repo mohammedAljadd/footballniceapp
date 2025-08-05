@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 class Match(models.Model):
     MATCH_DAYS = [
@@ -22,8 +23,6 @@ class Match(models.Model):
         # Use related_name='players' from PlayerEntry FK
         return self.players.filter(removed=False).order_by('added_at')
 
-from django.contrib.auth.models import User
-
 class PlayerEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='players')
@@ -35,16 +34,15 @@ class PlayerEntry(models.Model):
     def __str__(self):
         return f"{self.user.username if self.user else 'Anonymous'} - {self.match}"
 
-
 class ActionLog(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Added user field
     player_name = models.CharField(max_length=100)
     action = models.CharField(max_length=10, choices=[("added", "Added"), ("removed", "Removed")])
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.player_name} {self.action} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
-
 
 class MatchComment(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='comments')
@@ -57,3 +55,43 @@ class MatchComment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} on {self.match} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+class PlayerStats(models.Model):
+    """Model to track player statistics"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='stats')
+    matches_attended = models.PositiveIntegerField(default=0)
+    matches_joined = models.PositiveIntegerField(default=0)  # Total times joined (including removals)
+    last_match_date = models.DateField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.matches_attended} matches attended"
+    
+    @classmethod
+    def update_stats_for_user(cls, user):
+        """Update stats for a specific user"""
+        stats, created = cls.objects.get_or_create(user=user)
+        
+        # Count matches attended (where user joined and match date has passed)
+        today = timezone.now().date()
+        attended = PlayerEntry.objects.filter(
+            user=user,
+            removed=False,
+            match__date__lt=today
+        ).count()
+        
+        # Count total times joined
+        joined = PlayerEntry.objects.filter(user=user).count()
+        
+        # Get last match date
+        last_entry = PlayerEntry.objects.filter(
+            user=user,
+            removed=False,
+            match__date__lt=today
+        ).order_by('-match__date').first()
+        
+        stats.matches_attended = attended
+        stats.matches_joined = joined
+        stats.last_match_date = last_entry.match.date if last_entry else None
+        stats.save()
+        
+        return stats

@@ -19,31 +19,244 @@
     </div>
   </div>
 
-  <h2>Player List ({{ players.count }}/{{ match.max_players }})</h2>
-  <ol>
-    {% for player in players %}
-      <li>{{ player.user.username }}</li>
-    {% endfor %}
-  </ol>
+  <div class="match-content">
+    <div class="players-section">
+      <h2>Player List ({{ players.count }}/{{ match.max_players }})</h2>
+      
+      {% if players %}
+        <div class="players-list">
+          {% for player in players %}
+            <div class="player-item">
+              <div class="player-info">
+                <span class="player-number">{{ forloop.counter }}.</span>
+                <span class="player-name">{{ player.user.username }}</span>
+                {% if player.notes %}
+                  <span class="player-notes">💬 {{ player.notes }}</span>
+                {% endif %}
+              </div>
+              {% if user == player.user %}
+                <div class="player-actions">
+                  <button class="btn btn-sm btn-outline edit-notes-btn" 
+                          data-player-id="{{ player.id }}" 
+                          data-current-notes="{{ player.notes|default:'' }}">
+                    ✏️ Edit Notes
+                  </button>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="no-players">No players registered yet.</p>
+      {% endif %}
 
-  {% if user.is_authenticated %}
-    {% if user_entry and not user_entry.removed %}
-      <form method="post" action="{% url 'toggle_participation' match.id %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Remove Myself</button>
-      </form>
-    {% elif players.count < match.max_players %}
-      <form method="post" action="{% url 'toggle_participation' match.id %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Add Myself</button>
-      </form>
-    {% else %}
-      <p>The list is full! You cannot join now.</p>
-    {% endif %}
-  {% else %}
-    <p><a href="{% url 'login' %}">Log in</a> to add or remove yourself.</p>
-  {% endif %}
+      {% if user.is_authenticated %}
+        {% if user_entry and not user_entry.removed %}
+          <div class="participation-section">
+            <form method="post" action="{% url 'toggle_participation' match.id %}" class="participation-form">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="notes">Your Notes (optional):</label>
+                <textarea name="notes" id="notes" class="form-control" rows="2" 
+                         placeholder="e.g., 'Coming late', 'I'll bring a ball'"
+                         maxlength="500">{{ user_entry.notes|default:'' }}</textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Remove Myself</button>
+                <button type="button" class="btn btn-outline update-notes-btn">Update Notes Only</button>
+              </div>
+            </form>
+          </div>
+        {% elif players.count < match.max_players %}
+          <div class="participation-section">
+            <form method="post" action="{% url 'toggle_participation' match.id %}" class="participation-form">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="notes">Add Notes (optional):</label>
+                <textarea name="notes" id="notes" class="form-control" rows="2" 
+                         placeholder="e.g., 'Coming late', 'I'll bring a ball'"
+                         maxlength="500"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Add Myself</button>
+            </form>
+          </div>
+        {% else %}
+          <div class="match-full">
+            <p>🚫 The list is full! You cannot join now.</p>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="login-prompt">
+          <p><a href="{% url 'login' %}">Log in</a> to add or remove yourself.</p>
+        </div>
+      {% endif %}
+    </div>
 
-  <br>
-  <a href="{% url 'match_list' %}" class="btn btn-outline">⬅ Back to Match List</a>
+    <div class="comments-section">
+      <h2>Match Comments</h2>
+      
+      {% if user.is_authenticated %}
+        <div class="add-comment">
+          <form method="post" class="comment-form">
+            {% csrf_token %}
+            <div class="form-group">
+              {{ comment_form.content }}
+            </div>
+            <button type="submit" name="add_comment" class="btn btn-primary">Add Comment</button>
+          </form>
+        </div>
+      {% endif %}
+
+      <div class="comments-list">
+        {% for comment in comments %}
+          <div class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">{{ comment.user.username }}</span>
+              <span class="comment-date">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+              {% if user == comment.user or user.is_staff %}
+                <a href="{% url 'delete_comment' comment.id %}" 
+                   class="comment-delete" 
+                   onclick="return confirm('Are you sure you want to delete this comment?')">
+                  🗑️
+                </a>
+              {% endif %}
+            </div>
+            <div class="comment-content">
+              {{ comment.content|linebreaks }}
+            </div>
+          </div>
+        {% empty %}
+          <p class="no-comments">No comments yet. Be the first to comment!</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="back-link">
+    <a href="{% url 'match_list' %}" class="btn btn-outline">⬅ Back to Match List</a>
+  </div>
+
+  <!-- Notes Modal -->
+  <div id="notesModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Your Notes</h3>
+        <span class="modal-close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <textarea id="modalNotes" class="form-control" rows="3" 
+                 placeholder="e.g., 'Coming late', 'I'll bring a ball'"
+                 maxlength="500"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="saveNotes" class="btn btn-primary">Save Notes</button>
+        <button class="btn btn-outline modal-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Notes modal functionality
+    const modal = document.getElementById('notesModal');
+    const editBtns = document.querySelectorAll('.edit-notes-btn');
+    const closeBtn = document.querySelector('.modal-close');
+    const cancelBtn = document.querySelector('.modal-cancel');
+    const saveBtn = document.getElementById('saveNotes');
+    const modalNotes = document.getElementById('modalNotes');
+    const updateNotesBtn = document.querySelector('.update-notes-btn');
+    
+    let currentPlayerId = null;
+    
+    // Open modal when edit button is clicked
+    editBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        currentPlayerId = this.dataset.playerId;
+        modalNotes.value = this.dataset.currentNotes;
+        modal.style.display = 'block';
+      });
+    });
+    
+    // Close modal
+    function closeModal() {
+      modal.style.display = 'none';
+      currentPlayerId = null;
+    }
+    
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+    
+    // Save notes via AJAX
+    saveBtn.addEventListener('click', function() {
+      const notes = modalNotes.value.trim();
+      
+      fetch(`{% url 'update_player_notes' match.id %}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `notes=${encodeURIComponent(notes)}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          location.reload(); // Refresh to show updated notes
+        } else {
+          alert('Error updating notes: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating notes');
+      });
+      
+      closeModal();
+    });
+    
+    // Update notes only (without changing participation)
+    if (updateNotesBtn) {
+      updateNotesBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const notesTextarea = document.getElementById('notes');
+        const notes = notesTextarea.value.trim();
+        
+        fetch(`{% url 'update_player_notes' match.id %}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: `notes=${encodeURIComponent(notes)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Show success message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-success';
+            messageDiv.textContent = 'Notes updated successfully!';
+            document.querySelector('.main-content').insertBefore(messageDiv, document.querySelector('.match-header'));
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+              messageDiv.remove();
+            }, 3000);
+          } else {
+            alert('Error updating notes: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error updating notes');
+        });
+      });
+    }
+  </script>
 {% endblock %}

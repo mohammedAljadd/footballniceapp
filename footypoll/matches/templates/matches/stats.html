@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Player Statistics{% endblock %}
+
+{% block content %}
+  <div class="stats-header">
+    <h1>Player Statistics</h1>
+    <a href="{% url 'match_list' %}" class="btn btn-outline">← Back to Matches</a>
+  </div>
+
+  <div class="stats-overview">
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-number">{{ total_matches }}</div>
+        <div class="stat-label">Total Matches Played</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ total_players }}</div>
+        <div class="stat-label">Registered Players</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ recent_matches }}</div>
+        <div class="stat-label">Matches (Last 30 Days)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="top-players-section">
+    <h2>🏆 Top Players</h2>
+    <div class="top-players-grid">
+      {% for stat in top_players %}
+        <div class="player-stat-card {% if forloop.counter <= 3 %}top-{{ forloop.counter }}{% endif %}">
+          <div class="player-rank">
+            {% if forloop.counter == 1 %}🥇
+            {% elif forloop.counter == 2 %}🥈
+            {% elif forloop.counter == 3 %}🥉
+            {% else %}#{{ forloop.counter }}
+            {% endif %}
+          </div>
+          <div class="player-info">
+            <div class="player-name">{{ stat.user.username }}</div>
+            <div class="player-matches">{{ stat.matches_attended }} matches attended</div>
+            {% if stat.last_match_date %}
+              <div class="player-last-match">Last: {{ stat.last_match_date|date:"M d, Y" }}</div>
+            {% endif %}
+          </div>
+          <div class="player-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ stat.matches_joined }}</span>
+              <span class="stat-desc">joined</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">
+                {% widthratio stat.matches_attended stat.matches_joined 100 %}%
+              </span>
+              <span class="stat-desc">attendance</span>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="all-players-section">
+    <h2>All Player Statistics</h2>
+    <div class="stats-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Matches Attended</th>
+            <th>Times Joined</th>
+            <th>Attendance Rate</th>
+            <th>Last Match</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stat in stats %}
+            <tr>
+              <td>
+                <span class="rank-number">{{ forloop.counter }}</span>
+                {% if forloop.counter <= 3 %}
+                  <span class="rank-medal">
+                    {% if forloop.counter == 1 %}🥇
+                    {% elif forloop.counter == 2 %}🥈
+                    {% elif forloop.counter == 3 %}🥉
+                    {% endif %}
+                  </span>
+                {% endif %}
+              </td>
+              <td><strong>{{ stat.user.username }}</strong></td>
+              <td>{{ stat.matches_attended }}</td>
+              <td>{{ stat.matches_joined }}</td>
+              <td>
+                {% if stat.matches_joined > 0 %}
+                  <span class="attendance-rate">
+                    {% widthratio stat.matches_attended stat.matches_joined 100 %}%
+                  </span>
+                {% else %}
+                  <span class="attendance-rate">N/A</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if stat.last_match_date %}
+                  {{ stat.last_match_date|date:"M d, Y" }}
+                {% else %}
+                  <span class="no-data">Never</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="no-data">No statistics available yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="stats-notes">
+    <h3>Notes</h3>
+    <ul>
+      <li><strong>Matches Attended:</strong> Number of matches where the player was registered and the match date has passed</li>
+      <li><strong>Times Joined:</strong> Total number of times the player signed up for matches (including those they later removed themselves from)</li>
+      <li><strong>Attendance Rate:</strong> Percentage of joined matches that were actually attended</li>
+      <li>Statistics are updated in real-time when you view this page</li>
+    </ul>
+  </div>
+{% endblock %}
