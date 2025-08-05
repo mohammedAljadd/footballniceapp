@@ -26,11 +26,14 @@ from django.contrib.auth.models import User
 
 class PlayerEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='players')
     removed = models.BooleanField(default=False)
     added_at = models.DateTimeField(auto_now_add=True)
     removed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True, null=True, help_text="Optional notes (e.g., 'Coming late', 'I'll bring a ball')")
+
+    def __str__(self):
+        return f"{self.user.username if self.user else 'Anonymous'} - {self.match}"
 
 
 class ActionLog(models.Model):
@@ -41,3 +44,16 @@ class ActionLog(models.Model):
 
     def __str__(self):
         return f"{self.player_name} {self.action} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+
+
+class MatchComment(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.user.username} on {self.match} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
