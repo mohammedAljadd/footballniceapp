@@ -5,10 +5,24 @@
 {% block content %}
   <div class="manage-header">
     <h1>Manage Matches</h1>
-    <a href="{% url 'create_match' %}" class="btn btn-primary">Create New Match</a>
+    <div class="header-actions">
+      <a href="{% url 'create_match' %}" class="btn btn-primary">Create New Match</a>
+      <a href="{% url 'manage_matches' %}?show_all=true" class="btn btn-outline">
+        {% if request.GET.show_all %}Show Upcoming Only{% else %}Show All Matches{% endif %}
+      </a>
+    </div>
   </div>
 
   {% if matches %}
+    <div class="matches-summary">
+      <p>
+        {% if show_all %}
+          Showing all matches ({{ matches.count }} total)
+        {% else %}
+          Showing upcoming matches ({{ matches.count }} total)
+        {% endif %}
+      </p>
+    </div>
     <div class="matches-table">
       <table>
         <thead>
@@ -23,7 +37,7 @@
         </thead>
         <tbody>
           {% for match in matches %}
-            <tr>
+            <tr {% if match.date < today %}class="past-match"{% endif %}>
               <td>{{ match.day }}</td>
               <td>{{ match.date }}</td>
               <td>{{ match.time }}</td>

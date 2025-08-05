@@ -15,7 +15,12 @@ from reportlab.lib import colors
 from io import BytesIO
 
 def match_list(request):
-    matches = Match.objects.order_by('date')
+    # Get today's date
+    today = timezone.now().date()
+    
+    # Filter matches to show only future matches (date >= today)
+    matches = Match.objects.filter(date__gte=today).order_by('date', 'time')
+    
     return render(request, 'matches/match_list.html', {'matches': matches})
 
 def match_detail(request, match_id):
@@ -103,8 +108,21 @@ def delete_match(request, match_id):
 
 @staff_member_required
 def manage_matches(request):
-    matches = Match.objects.order_by('-date', '-time')
-    return render(request, 'matches/manage_matches.html', {'matches': matches})
+    show_all = request.GET.get('show_all', False)
+    today = timezone.now().date()
+    
+    if show_all:
+        # Show all matches (including past ones)
+        matches = Match.objects.order_by('-date', '-time')
+    else:
+        # Show only upcoming matches
+        matches = Match.objects.filter(date__gte=today).order_by('date', 'time')
+    
+    return render(request, 'matches/manage_matches.html', {
+        'matches': matches,
+        'show_all': show_all,
+        'today': today
+    })
 
 @staff_member_required
 def action_log(request):

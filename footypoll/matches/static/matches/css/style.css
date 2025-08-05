@@ -265,6 +265,22 @@ a:hover {
   text-align: center;
 }
 
+/* Past matches styling */
+.past-match {
+  opacity: 0.6;
+  background-color: #f9fafb !important;
+}
+
+.past-match td {
+  color: #6b7280;
+}
+
+.matches-summary {
+  margin-bottom: 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
 /* Table Styles */
 table {
   width: 100%;
