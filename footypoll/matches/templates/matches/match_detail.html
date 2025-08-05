@@ -3,8 +3,21 @@
 {% block title %}{{ match.day }} - Match Details{% endblock %}
 
 {% block content %}
-  <h1>{{ match.day }} - {{ match.date }} at {{ match.time }}</h1>
-  <p>Location: <a href="{{ match.location_url }}" target="_blank">Map</a></p>
+  <div class="match-header">
+    <div class="match-info">
+      <h1>{{ match.day }} - {{ match.date }} at {{ match.time }}</h1>
+      <p>Location: <a href="{{ match.location_url }}" target="_blank">Map</a></p>
+    </div>
+    
+    <div class="match-actions">
+      <a href="{% url 'export_match_pdf' match.id %}" class="btn btn-outline">
+        📄 Download PDF
+      </a>
+      {% if user.is_staff %}
+        <a href="{% url 'edit_match' match.id %}" class="btn btn-sm btn-secondary">Edit Match</a>
+      {% endif %}
+    </div>
+  </div>
 
   <h2>Player List ({{ players.count }}/{{ match.max_players }})</h2>
   <ol>
@@ -14,23 +27,23 @@
   </ol>
 
   {% if user.is_authenticated %}
-  {% if user_entry and not user_entry.removed %}
-    <form method="post" action="{% url 'toggle_participation' match.id %}">
-      {% csrf_token %}
-      <button type="submit">Remove Myself</button>
-    </form>
-  {% elif players.count < match.max_players %}
-    <form method="post" action="{% url 'toggle_participation' match.id %}">
-      {% csrf_token %}
-      <button type="submit">Add Myself</button>
-    </form>
+    {% if user_entry and not user_entry.removed %}
+      <form method="post" action="{% url 'toggle_participation' match.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Remove Myself</button>
+      </form>
+    {% elif players.count < match.max_players %}
+      <form method="post" action="{% url 'toggle_participation' match.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Add Myself</button>
+      </form>
+    {% else %}
+      <p>The list is full! You cannot join now.</p>
+    {% endif %}
   {% else %}
-    <p>The list is full! You cannot join now.</p>
+    <p><a href="{% url 'login' %}">Log in</a> to add or remove yourself.</p>
   {% endif %}
-{% else %}
-  <p><a href="{% url 'login' %}">Log in</a> to add or remove yourself.</p>
-{% endif %}
 
   <br>
-  <a href="{% url 'match_list' %}">⬅ Back to Match List</a>
+  <a href="{% url 'match_list' %}" class="btn btn-outline">⬅ Back to Match List</a>
 {% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Matches{% endblock %}
+
+{% block content %}
+  <div class="manage-header">
+    <h1>Manage Matches</h1>
+    <a href="{% url 'create_match' %}" class="btn btn-primary">Create New Match</a>
+  </div>
+
+  {% if matches %}
+    <div class="matches-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Players</th>
+            <th>Max Players</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for match in matches %}
+            <tr>
+              <td>{{ match.day }}</td>
+              <td>{{ match.date }}</td>
+              <td>{{ match.time }}</td>
+              <td>{{ match.active_players.count }}</td>
+              <td>{{ match.max_players }}</td>
+              <td class="actions">
+                <a href="{% url 'match_detail' match.id %}" class="btn btn-sm">View</a>
+                <a href="{% url 'export_match_pdf' match.id %}" class="btn btn-sm btn-outline">PDF</a>
+                <a href="{% url 'edit_match' match.id %}" class="btn btn-sm btn-secondary">Edit</a>
+                <a href="{% url 'delete_match' match.id %}" class="btn btn-sm btn-danger">Delete</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No matches found. <a href="{% url 'create_match' %}">Create the first match</a>.</p>
+  {% endif %}
+
+  <div class="admin-links">
+    <a href="{% url 'action_log' %}" class="btn btn-outline">View Player Action Log</a>
+  </div>
+{% endblock %}

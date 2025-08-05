@@ -18,9 +18,8 @@
                     
                     {% if user.is_authenticated %}
                         {% if user.is_staff %}
-                            <li><a href="/admin/matches/match/" target="_blank">Add Match</a></li>
-                            <li><a href="{% url 'action_log' %}" target="_blank">Player Actions</a></li>
-
+                            <li><a href="{% url 'manage_matches' %}">Manage Matches</a></li>
+                            <li><a href="{% url 'action_log' %}">Player Actions</a></li>
                         {% endif %}
                         <li class="user-info">
                             👋 {{ user.username }}

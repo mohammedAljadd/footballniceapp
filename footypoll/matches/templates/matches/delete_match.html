@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Match{% endblock %}
+
+{% block content %}
+  <div class="form-header">
+    <h1>Delete Match</h1>
+  </div>
+
+  <div class="confirmation-container">
+    <div class="warning-box">
+      <h2>⚠️ Are you sure?</h2>
+      <p>You are about to delete the following match:</p>
+      
+      <div class="match-info">
+        <strong>{{ match.day }} - {{ match.date }} at {{ match.time }}</strong>
+        <br>
+        <small>{{ match.active_players.count }} players registered</small>
+      </div>
+      
+      <p><strong>This action cannot be undone.</strong> Deleting this match will:</p>
+      <ul>
+        <li>Remove all player entries for this match</li>
+        <li>Delete all action logs related to this match</li>
+        <li>Permanently remove the match from the system</li>
+      </ul>
+    </div>
+
+    <form method="post" class="delete-form">
+      {% csrf_token %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-danger">Yes, Delete Match</button>
+        <a href="{% url 'edit_match' match.id %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

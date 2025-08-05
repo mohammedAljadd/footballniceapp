@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Match{% endblock %}
+
+{% block content %}
+  <div class="form-header">
+    <h1>Edit Match</h1>
+    <div class="header-actions">
+      <a href="{% url 'match_detail' match.id %}" class="btn btn-outline">← Back to Match</a>
+      <a href="{% url 'manage_matches' %}" class="btn btn-outline">Manage All</a>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form method="post" class="match-form">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="{{ form.day.id_for_label }}">Day:</label>
+        {{ form.day }}
+        {% if form.day.errors %}
+          <div class="error">{{ form.day.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.date.id_for_label }}">Date:</label>
+        {{ form.date }}
+        {% if form.date.errors %}
+          <div class="error">{{ form.date.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.time.id_for_label }}">Time:</label>
+        {{ form.time }}
+        {% if form.time.errors %}
+          <div class="error">{{ form.time.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.max_players.id_for_label }}">Maximum Players:</label>
+        {{ form.max_players }}
+        {% if form.max_players.errors %}
+          <div class="error">{{ form.max_players.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.location_url.id_for_label }}">Location URL:</label>
+        {{ form.location_url }}
+        <small>Enter a Google Maps link or similar</small>
+        {% if form.location_url.errors %}
+          <div class="error">{{ form.location_url.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Update Match</button>
+        <a href="{% url 'match_detail' match.id %}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="danger-zone">
+    <h3>Danger Zone</h3>
+    <p>Deleting this match will remove all player entries and action logs associated with it.</p>
+    <a href="{% url 'delete_match' match.id %}" class="btn btn-danger">Delete This Match</a>
+  </div>
+{% endblock %}

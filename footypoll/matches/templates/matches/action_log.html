@@ -3,42 +3,84 @@
 {% block title %}Player Action Log{% endblock %}
 
 {% block content %}
-  <h1>Player Action Log</h1>
+  <div class="log-header">
+    <h1>Player Action Log</h1>
+    <a href="{% url 'manage_matches' %}" class="btn btn-outline">← Back to Manage</a>
+  </div>
 
-    <form method="get">
-    <label for="match-select">Filter by match:</label>
-    <select name="match_id" id="match-select" onchange="this.form.submit()">
-      <option value="">All matches</option>
-      {% for match in matches %}
-        <option value="{{ match.id }}" {% if match.id == selected_match_id %}selected{% endif %}>
-          {{ match.day }} - {{ match.date }} at {{ match.time }}
-        </option>
-      {% endfor %}
-    </select>
-    <noscript><button type="submit">Filter</button></noscript>
-  </form>
+  <div class="filters-container">
+    <form method="get" class="filters-form">
+      <div class="filter-group">
+        <label for="match-select">Filter by match:</label>
+        <select name="match_id" id="match-select">
+          <option value="">All matches</option>
+          {% for match in matches %}
+            <option value="{{ match.id }}" {% if match.id == selected_match_id %}selected{% endif %}>
+              {{ match.day }} - {{ match.date }} at {{ match.time }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
+      <div class="filter-group">
+        <label for="player-select">Filter by player:</label>
+        <select name="player_name" id="player-select">
+          <option value="">All players</option>
+          {% for player in player_names %}
+            <option value="{{ player }}" {% if player == selected_player_name %}selected{% endif %}>
+              {{ player }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <a href="{% url 'action_log' %}" class="btn btn-outline">Clear Filters</a>
+      </div>
+    </form>
+  </div>
+
+  {% if logs %}
+    <div class="logs-summary">
+      <p>Showing {{ logs.count }} log entries</p>
+    </div>
+  {% endif %}
   
-  <table>
-    <thead>
-      <tr>
-        <th>Player Name</th>
-        <th>Match</th>
-        <th>Action</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in logs %}
+  <div class="logs-table">
+    <table>
+      <thead>
         <tr>
-          <td>{{ log.player_name }}</td>
-          <td>{{ log.match.day }} - {{ log.match.date }} at {{ log.match.time }}</td>
-          <td>{{ log.action|title }}</td>
-          <td>{{ log.timestamp }}</td>
+          <th>Player Name</th>
+          <th>Match</th>
+          <th>Action</th>
+          <th>Timestamp</th>
         </tr>
-      {% empty %}
-        <tr><td colspan="4">No logs available.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td><strong>{{ log.player_name }}</strong></td>
+            <td>{{ log.match.day }} - {{ log.match.date }} at {{ log.match.time }}</td>
+            <td>
+              <span class="action-badge action-{{ log.action }}">
+                {{ log.action|title }}
+              </span>
+            </td>
+            <td>{{ log.timestamp|date:"M d, Y H:i" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="no-data">
+              {% if selected_match_id or selected_player_name %}
+                No logs found matching your filters.
+              {% else %}
+                No logs available.
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}
